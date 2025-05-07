@@ -19,24 +19,30 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
+          cache: 'npm'
 
       - name: Install Dependencies 📦
         run: |
           npm install --legacy-peer-deps
           npm install -g expo-cli
+
+      - name: Display App Version 📋
+        run: |
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          echo "Building app version: $VERSION"
           
       - name: Fix NativeWind 🔧
         run: |
           npm run fix-nativewind
-
+          
       - name: Build Web 🔨
         env:
           CI: false
           PUBLIC_URL: /self-fit
+          NODE_OPTIONS: --max-old-space-size=4096
         run: |
-          # 嘗試構建，如果失敗則忽略NativeWind錯誤
-          npx expo export:web || \
-          NODE_OPTIONS=--max-old-space-size=4096 npx expo export:web --no-pwa
+          # 使用优化后的构建命令
+          npx expo export:web || (echo "尝试使用备用构建方式" && NODE_OPTIONS=--max-old-space-size=6144 npx expo export --platform web --output-dir web-build)
 
       - name: Check Web Build Directory 🔍
         run: |
@@ -48,6 +54,13 @@ jobs:
             echo "Web build successful!"
             ls -la web-build/
           fi
+
+      - name: Add Version to Web Build 🏷️
+        run: |
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          # 添加版本号到 index.html
+          sed -i "s|</head>|<meta name=\"app-version\" content=\"$VERSION\" />\n<script>window.APP_VERSION = '$VERSION';</script>\n</head>|" web-build/index.html
+          echo "Added version $VERSION to web build"
 
       - name: Setup GitHub Pages Configuration 🧰
         run: |
