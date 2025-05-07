@@ -23,6 +23,7 @@ jobs:
       - name: Install Dependencies 📦
         run: |
           npm install --legacy-peer-deps
+          npm install -g expo-cli
           
       - name: Fix NativeWind 🔧
         run: |
@@ -34,8 +35,8 @@ jobs:
           PUBLIC_URL: /self-fit
         run: |
           # 嘗試構建，如果失敗則忽略NativeWind錯誤
-          PUBLIC_URL=/self-fit NODE_ENV=production expo export:web || \
-          NODE_OPTIONS=--max-old-space-size=4096 PUBLIC_URL=/self-fit NODE_ENV=production expo export:web --no-pwa
+          npx expo export:web || \
+          NODE_OPTIONS=--max-old-space-size=4096 npx expo export:web --no-pwa
 
       - name: Check Web Build Directory 🔍
         run: |
