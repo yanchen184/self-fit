@@ -1,6 +1,6 @@
 {
   "name": "self-fit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "node_modules/expo/AppEntry.js",
   "homepage": "https://yanchen184.github.io/self-fit",
   "scripts": {
@@ -8,7 +8,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build:web": "node ./nativewind-fix.js && PUBLIC_URL=/self-fit NODE_ENV=production expo export:web",
+    "build:web": "node ./nativewind-fix.js && PUBLIC_URL=/self-fit NODE_ENV=production CI=false expo export:web",
     "eject": "expo eject",
     "fix-nativewind": "node ./nativewind-fix.js"
   },
