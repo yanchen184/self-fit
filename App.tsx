@@ -3,13 +3,20 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
-import { NativeWindStyleSheet } from 'nativewind';
 
-// 確保 NativeWind 樣式正確初始化
-NativeWindStyleSheet.setOutput({
-  web: 'css',
-  native: 'native',
-});
+// 在這裡處理NativeWind的初始化
+try {
+  const { NativeWindStyleSheet } = require('nativewind');
+  if (NativeWindStyleSheet && typeof NativeWindStyleSheet.setOutput === 'function') {
+    NativeWindStyleSheet.setOutput({
+      web: 'css',
+      native: 'native',
+    });
+  }
+} catch (error) {
+  console.warn('NativeWind initialization error:', error);
+  // 即使NativeWind初始化失敗，也不中斷應用啟動
+}
 
 // Import navigation
 import AppNavigator from './src/navigation/AppNavigator';
