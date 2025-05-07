@@ -43,13 +43,13 @@ SelfFit 是一款幫助用戶像安排會議一樣規劃和追蹤他們的運動
 
 ## 🧪 技術堆疊
 
-- **前端**: React Native (Expo)、React Navigation
-- **Web支援**: Expo for Web
+- **前端框架**: React Native (Expo)
+- **UI 樣式**: NativeWind、Tailwind CSS
 - **狀態管理**: Zustand
-- **資料儲存**: AsyncStorage (MVP)，未來支援Firebase
-- **推播通知**: Expo Notifications
-- **UI框架**: NativeBase/TailwindCSS
+- **本地存儲**: AsyncStorage
+- **導航**: React Navigation
 - **日曆元件**: react-native-big-calendar
+- **推播通知**: Expo Notifications
 
 ## 📥 安裝與啟動
 
@@ -59,7 +59,7 @@ git clone https://github.com/yanchen184/self-fit.git
 cd self-fit
 
 # 安裝依賴
-npm install
+npm install --legacy-peer-deps
 
 # 啟動專案
 npm start
@@ -77,14 +77,67 @@ npm start
 4. 行程結束 → 記錄是否完成運動
 5. 回顧週運動成果 → 查看進度圖表
 
+## 構建問題與解決方案
+
+### 問題描述
+
+在使用 Tailwind CSS 和 NativeWind 時，Web 構建過程出現錯誤，主要原因是 NativeWind 的 CSS 處理存在異步問題：
+
+```
+Use process(css).then(cb) to work with async plugins
+```
+
+### 解決方案
+
+我們採取了以下措施解決這個問題：
+
+1. **直接修改 NativeWind 源碼**
+   - 在 GitHub Actions 工作流程中添加步驟，修改 `node_modules/nativewind/dist/babel/native.js` 文件
+   - 改進 `process()` 函數的實現，添加錯誤處理並解決異步處理問題
+
+2. **優化 webpack 配置**
+   - 添加 resolve 別名，確保正確解析 React Native Web
+   - 添加 CSS 處理規則，適配 NativeWind 和 Tailwind CSS
+   - 添加 NativeWind 錯誤捕獲插件，避免中斷構建
+
+3. **增強 App.tsx 的錯誤處理**
+   - 使用 try-catch 包裝 NativeWind 的初始化代碼
+   - 即使 NativeWind 初始化失敗，也不影響應用啟動
+
+4. **改進 GitHub Actions 工作流程**
+   - 優化 npm 安裝過程，解決依賴衝突
+   - 添加 `package-lock.json` 支持依賴緩存
+   - 設置 SPA 路由支持，確保 GitHub Pages 部署正常工作
+
 ## 📈 開發路線
 
 - **MVP** (v1.0.0): 基本日曆、運動記錄、本地存儲功能
 - **未來計劃**:
   - 雲端同步 (Firebase/Supabase)
+  - 用戶認證和多設備同步
   - 用戶成就系統
   - 社交分享功能
   - 運動統計與分析報告
+
+## 專案結構
+
+```
+self-fit/
+├── assets/                # 應用資源文件
+├── src/
+│   ├── components/        # 可重用組件
+│   ├── navigation/        # 導航配置
+│   ├── screens/           # 頁面組件
+│   ├── stores/            # 狀態管理
+│   └── types/             # TypeScript類型定義
+├── web/                   # Web特定文件
+│   ├── index.html         # Web入口HTML
+│   └── manifest.json      # Web應用配置
+├── App.tsx                # 主應用入口
+├── app.json               # Expo配置
+├── babel.config.js        # Babel配置
+└── tailwind.config.js     # TailwindCSS配置
+```
 
 ## 🧑‍💻 貢獻
 
