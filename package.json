@@ -8,9 +8,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build:web": "PUBLIC_URL=/self-fit NODE_ENV=production expo export:web",
+    "build:web": "node ./nativewind-fix.js && PUBLIC_URL=/self-fit NODE_ENV=production expo export:web",
     "eject": "expo eject",
-    "postinstall": "patch-package"
+    "fix-nativewind": "node ./nativewind-fix.js"
   },
   "dependencies": {
     "@expo/webpack-config": "^19.0.0",
@@ -44,7 +44,6 @@
     "@babel/core": "^7.20.0",
     "@types/react": "~18.2.14",
     "@types/react-native": "^0.72.5",
-    "patch-package": "^8.0.0",
     "typescript": "^5.1.3"
   },
   "private": true
