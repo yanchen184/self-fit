@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
-import { registerRootComponent } from 'expo';
 import * as Notifications from 'expo-notifications';
 
 // Import navigation
@@ -20,7 +19,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-function App() {
+export default function App() {
   const { initializeApp } = useAppStore();
 
   // Initialize app state on startup
@@ -37,6 +36,3 @@ function App() {
     </SafeAreaProvider>
   );
 }
-
-// Register the root component
-export default registerRootComponent(App);
