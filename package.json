@@ -2,17 +2,19 @@
   "name": "self-fit",
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
+  "homepage": "https://yanchen184.github.io/self-fit",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build:web": "expo export:web",
+    "build:web": "PUBLIC_URL=/self-fit expo export:web",
     "eject": "expo eject"
   },
   "dependencies": {
     "@expo/webpack-config": "^19.0.0",
     "@react-native-async-storage/async-storage": "^1.18.2",
+    "@react-native-community/datetimepicker": "^7.2.0",
     "@react-navigation/bottom-tabs": "^6.5.11",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
