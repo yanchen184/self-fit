@@ -3,6 +3,13 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
+import { NativeWindStyleSheet } from 'nativewind';
+
+// 確保 NativeWind 樣式正確初始化
+NativeWindStyleSheet.setOutput({
+  web: 'css',
+  native: 'native',
+});
 
 // Import navigation
 import AppNavigator from './src/navigation/AppNavigator';
