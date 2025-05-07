@@ -23,38 +23,38 @@ jobs:
       - name: Install Dependencies 📦
         run: |
           npm install --legacy-peer-deps
-
-      - name: Modify NativeWind Source Code 🔧
+          
+      - name: Fix NativeWind 🔧
         run: |
-          NATIVE_FILE=node_modules/nativewind/dist/babel/native.js
-          if [ -f "$NATIVE_FILE" ]; then
-            # Create a backup
-            cp $NATIVE_FILE ${NATIVE_FILE}.backup
-            
-            # Fix the async issue in process() function
-            sed -i 's/async function process(css, options) {/async function process(css, options) {\n  try {/' $NATIVE_FILE
-            sed -i 's/return (await postcss(\[pluginCreator(options)\]).process(css, { from: undefined })).css;/const result = await postcss([pluginCreator(options)]).process(css, { from: undefined });\n    return result.css;\n  } catch (error) {\n    console.error("Error processing CSS:", error);\n    throw error;\n  }/' $NATIVE_FILE
-            
-            echo "Modified NativeWind source successfully"
-          else
-            echo "NativeWind file not found at $NATIVE_FILE"
-            ls -la node_modules/nativewind/dist/babel/ || echo "Directory not found"
-          fi
+          npm run fix-nativewind
 
       - name: Build Web 🔨
         env:
           CI: false
           PUBLIC_URL: /self-fit
-        run: npm run build:web || npm run build:web
+        run: |
+          # 嘗試構建，如果失敗則忽略NativeWind錯誤
+          PUBLIC_URL=/self-fit NODE_ENV=production expo export:web || \
+          NODE_OPTIONS=--max-old-space-size=4096 PUBLIC_URL=/self-fit NODE_ENV=production expo export:web --no-pwa
+
+      - name: Check Web Build Directory 🔍
+        run: |
+          if [ ! -d "web-build" ] || [ ! -f "web-build/index.html" ]; then
+            echo "Web build failed or directory is missing!"
+            ls -la
+            exit 1
+          else
+            echo "Web build successful!"
+            ls -la web-build/
+          fi
 
       - name: Setup GitHub Pages Configuration 🧰
         run: |
           # Create a 404.html file for SPA routing
-          if [ -d "web-build" ]; then
-            cp web-build/index.html web-build/404.html
-            
-            # Add SPA routing script to index.html
-            cat <<EOT >> web-build/index.html
+          cp web-build/index.html web-build/404.html
+          
+          # Add SPA routing script to index.html
+          cat <<EOT >> web-build/index.html
           <script type="text/javascript">
             (function(l) {
               if (l.search[1] === '/' ) {
@@ -68,10 +68,6 @@ jobs:
             }(window.location))
           </script>
           EOT
-          else
-            echo "web-build directory not found. Build may have failed."
-            ls -la
-          fi
 
       - name: Deploy to GitHub Pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4
