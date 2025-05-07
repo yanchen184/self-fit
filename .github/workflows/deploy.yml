@@ -19,10 +19,38 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
+          # 禁用依賴項緩存，直到我們生成 package-lock.json
           cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
       - name: Install Dependencies 📦
-        run: npm install --legacy-peer-deps
+        run: |
+          npm config set legacy-peer-deps true
+          npm install --no-package-lock
+          npm install --package-lock-only
+          npm ci
+
+      - name: Create Patch for NativeWind ✨
+        run: |
+          mkdir -p patches/nativewind@2.0.11
+          cat > patches/nativewind@2.0.11/web-build-fix.patch << 'EOL'
+          diff --git a/node_modules/nativewind/dist/babel/native.js b/node_modules/nativewind/dist/babel/native.js
+          index df52ab8..5321e75 100644
+          --- a/node_modules/nativewind/dist/babel/native.js
+          +++ b/node_modules/nativewind/dist/babel/native.js
+          @@ -10,7 +10,9 @@ const plugin = require("tailwindcss/plugin");
+           const postcss = require("postcss");
+           
+           async function process(css, options) {
+          -  return (await postcss([pluginCreator(options)]).process(css, { from: undefined })).css;
+          +  const result = await postcss([pluginCreator(options)]).process(css, { from: undefined });
+          +  return result.css;
+          +  
+           }
+           
+           function pluginCreator(options = {}) {
+          EOL
+          npx patch-package nativewind
 
       - name: Build Web 🔨
         env:
