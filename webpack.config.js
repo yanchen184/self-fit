@@ -1,22 +1,13 @@
 const createExpoWebpackConfigAsync = require('@expo/webpack-config');
 
 module.exports = async function(env, argv) {
-  const config = await createExpoWebpackConfigAsync(
-    {
-      ...env,
-      // 啟用強制HTTPS
-      https: true,
-      // 添加PWA支持
-      pwa: true
-    },
-    argv
-  );
+  // 基本 Expo webpack 配置
+  const config = await createExpoWebpackConfigAsync(env, argv);
   
-  // 自定義webpack配置
-  config.output = {
-    ...config.output,
-    publicPath: process.env.NODE_ENV === 'production' ? '/self-fit/' : '/',
-  };
+  // 設置 GitHub Pages 路徑
+  if (process.env.NODE_ENV === 'production') {
+    config.output.publicPath = '/self-fit/';
+  }
 
   return config;
 };
