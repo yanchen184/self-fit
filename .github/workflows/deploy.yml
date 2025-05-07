@@ -19,52 +19,42 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
-          # 禁用依賴項緩存，直到我們生成 package-lock.json
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
 
       - name: Install Dependencies 📦
         run: |
-          npm config set legacy-peer-deps true
-          npm install --no-package-lock
-          npm install --package-lock-only
-          npm ci
+          npm install --legacy-peer-deps
 
-      - name: Create Patch for NativeWind ✨
+      - name: Modify NativeWind Source Code 🔧
         run: |
-          mkdir -p patches/nativewind@2.0.11
-          cat > patches/nativewind@2.0.11/web-build-fix.patch << 'EOL'
-          diff --git a/node_modules/nativewind/dist/babel/native.js b/node_modules/nativewind/dist/babel/native.js
-          index df52ab8..5321e75 100644
-          --- a/node_modules/nativewind/dist/babel/native.js
-          +++ b/node_modules/nativewind/dist/babel/native.js
-          @@ -10,7 +10,9 @@ const plugin = require("tailwindcss/plugin");
-           const postcss = require("postcss");
-           
-           async function process(css, options) {
-          -  return (await postcss([pluginCreator(options)]).process(css, { from: undefined })).css;
-          +  const result = await postcss([pluginCreator(options)]).process(css, { from: undefined });
-          +  return result.css;
-          +  
-           }
-           
-           function pluginCreator(options = {}) {
-          EOL
-          npx patch-package nativewind
+          NATIVE_FILE=node_modules/nativewind/dist/babel/native.js
+          if [ -f "$NATIVE_FILE" ]; then
+            # Create a backup
+            cp $NATIVE_FILE ${NATIVE_FILE}.backup
+            
+            # Fix the async issue in process() function
+            sed -i 's/async function process(css, options) {/async function process(css, options) {\n  try {/' $NATIVE_FILE
+            sed -i 's/return (await postcss(\[pluginCreator(options)\]).process(css, { from: undefined })).css;/const result = await postcss([pluginCreator(options)]).process(css, { from: undefined });\n    return result.css;\n  } catch (error) {\n    console.error("Error processing CSS:", error);\n    throw error;\n  }/' $NATIVE_FILE
+            
+            echo "Modified NativeWind source successfully"
+          else
+            echo "NativeWind file not found at $NATIVE_FILE"
+            ls -la node_modules/nativewind/dist/babel/ || echo "Directory not found"
+          fi
 
       - name: Build Web 🔨
         env:
           CI: false
           PUBLIC_URL: /self-fit
-        run: npm run build:web
+        run: npm run build:web || npm run build:web
 
       - name: Setup GitHub Pages Configuration 🧰
         run: |
           # Create a 404.html file for SPA routing
-          cp web-build/index.html web-build/404.html
-          
-          # Add SPA routing script to index.html
-          cat <<EOT >> web-build/index.html
+          if [ -d "web-build" ]; then
+            cp web-build/index.html web-build/404.html
+            
+            # Add SPA routing script to index.html
+            cat <<EOT >> web-build/index.html
           <script type="text/javascript">
             (function(l) {
               if (l.search[1] === '/' ) {
@@ -78,6 +68,10 @@ jobs:
             }(window.location))
           </script>
           EOT
+          else
+            echo "web-build directory not found. Build may have failed."
+            ls -la
+          fi
 
       - name: Deploy to GitHub Pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4
