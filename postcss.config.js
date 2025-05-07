@@ -1,4 +1,6 @@
-// Placeholder file
 module.exports = {
-  plugins: {},
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
 };
