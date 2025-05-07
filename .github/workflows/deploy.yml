@@ -22,12 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies 📦
-        run: npm install
-
-      - name: Create 404.html for SPA 🔌
-        run: |
-          mkdir -p web-build
-          echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>SelfFit</title><script type="text/javascript">var pathSegmentsToKeep=1;var l=window.location;l.replace(l.protocol+"//"+l.hostname+(l.port?":"+l.port:"")+l.pathname.split("/").slice(0,1+pathSegmentsToKeep).join("/")+"/?p=/"+l.pathname.slice(1).split("/").slice(pathSegmentsToKeep).join("/").replace(/&/g,"~and~")+(l.search?"&"+l.search.slice(1).replace(/&/g,"~and~"):"")+l.hash);</script></head><body></body></html>' > web-build/404.html
+        run: npm install --legacy-peer-deps
 
       - name: Build Web 🔨
         env:
@@ -35,8 +30,12 @@ jobs:
           PUBLIC_URL: /self-fit
         run: npm run build:web
 
-      - name: Fix index.html for SPA routing 🧰
+      - name: Setup GitHub Pages Configuration 🧰
         run: |
+          # Create a 404.html file for SPA routing
+          cp web-build/index.html web-build/404.html
+          
+          # Add SPA routing script to index.html
           cat <<EOT >> web-build/index.html
           <script type="text/javascript">
             (function(l) {
