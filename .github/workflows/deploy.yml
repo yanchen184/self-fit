@@ -41,8 +41,31 @@ jobs:
           PUBLIC_URL: /self-fit
           NODE_OPTIONS: --max-old-space-size=4096
         run: |
-          # 使用优化后的构建命令
-          npx expo export:web || (echo "尝试使用备用构建方式" && NODE_OPTIONS=--max-old-space-size=6144 npx expo export --platform web --output-dir web-build)
+          # 檢查 postcss.config.js 和 webpack.config.js 是否存在
+          if [ ! -f "postcss.config.js" ]; then
+            echo "Creating missing postcss.config.js"
+            cat > postcss.config.js << 'EOL'
+module.exports = {
+  plugins: {
+    'nativewind/postcss': {
+      async: true,
+    },
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+EOL
+          fi
+
+          # 使用 npm 腳本構建
+          echo "開始構建 Web 版本..."
+          npm run build:web || (echo "構建失敗，嘗試直接使用 expo export:web 命令" && CI=false PUBLIC_URL=/self-fit expo export:web)
+          
+          # 檢查構建結果
+          if [ ! -d "web-build" ]; then
+            echo "web-build 目錄不存在，嘗試使用備用構建方式"
+            NODE_OPTIONS=--max-old-space-size=8192 CI=false PUBLIC_URL=/self-fit expo export --platform web
+          fi
 
       - name: Check Web Build Directory 🔍
         run: |
@@ -58,7 +81,7 @@ jobs:
       - name: Add Version to Web Build 🏷️
         run: |
           VERSION=$(node -e "console.log(require('./package.json').version)")
-          # 添加版本号到 index.html
+          # 添加版本號到 index.html
           sed -i "s|</head>|<meta name=\"app-version\" content=\"$VERSION\" />\n<script>window.APP_VERSION = '$VERSION';</script>\n</head>|" web-build/index.html
           echo "Added version $VERSION to web build"
 
