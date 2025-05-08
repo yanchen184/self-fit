@@ -1,7 +1,7 @@
 module.exports = {
   plugins: {
     'nativewind/postcss': {
-      // 确保异步处理正确
+      // 確保異步處理正確
       async: true,
     },
     tailwindcss: {},
